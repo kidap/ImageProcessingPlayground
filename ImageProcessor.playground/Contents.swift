@@ -2,11 +2,25 @@
 
 import UIKit
 
+
+
 let image = UIImage(named: "sample")
 
-// Process the image!
 
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+// Enumeration: Filters
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+enum filter:String{
+    case grayscale = "grayscale"
+    case brightness = "brightness"
+    case contrast = "contrast"
+    case sepia = "sepia"
+    case transparency = "transparency"
+}
 
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+// Class: Image Processor
+/*----------------------------------------------------------------------------------------------------------------------------------*/
 class ImageProcessor {
     var image: UIImage
     
@@ -15,130 +29,211 @@ class ImageProcessor {
         self.image = image
     }
     
-    func applyFilter( filterByFunction: ()->UIImage) ->UIImage{
-        return filterByFunction()
+    //func applyFilter( filterByFunction: (Int)->UIImage, _ intensity: Int = 100) ->UIImage{
+    //    return filterByFunction(intensity
+    //}
+    
+    // Multiple filters from Enumeration
+    func applyFilters(filterTypes filters: (type:filter,intensity:Int)...) ->UIImage{
+        for filter in filters{
+            applyFilter(filterType: filter.type, intensity: filter.intensity)
+        }
+        return self.image
     }
-    func applyFilter( filterByName filterName: String) ->UIImage{
-        let myRGBA = RGBAImage(image: self.image)!
+    
+    // Multiple filters from String
+    func applyFilters(filterTypes filters: (type:String,intensity:Int)...) ->UIImage{
+        for filter in filters{
+            applyFilter(filterType: filter.type, intensity: filter.intensity)
+        }
+        return self.image
+    }
+    
+    // Apple filter from String
+    func applyFilter( filterType filterName: String) ->UIImage{
+        switch(filterName.lowercaseString){
+        case filter.grayscale.rawValue:
+            return filter1()
+        case filter.brightness.rawValue:
+            return filter2()
+        case filter.contrast.rawValue:
+            return filter3()
+        case filter.sepia.rawValue:
+            return filter4()
+        case filter.transparency.rawValue:
+            return filter5()
+        default: return self.image
+        }
+    }
+    
+    // Apply filter from String, with intensity
+    func applyFilter( filterType filterName: String, intensity: Int) ->UIImage{
+        switch(filterName.lowercaseString){
+        case filter.grayscale.rawValue:
+            return filter1(intensity)
+        case filter.brightness.rawValue:
+            return filter2(intensity)
+        case filter.contrast.rawValue:
+            return filter3(intensity)
+        case filter.sepia.rawValue:
+            return filter4(intensity)
+        case filter.transparency.rawValue:
+            return filter5(intensity)
+        default: return self.image
+        }
+    }
+    
+    // Apple filter from Enumeration
+    func applyFilter( filterType filterName: filter) ->UIImage{
+        switch(filterName){
+        case .grayscale:
+            return filter1()
+        case .brightness:
+            return filter2()
+        case .contrast:
+            return filter3()
+        case .sepia:
+            return filter4()
+        case .transparency:
+            return filter5()
+        }
+    }
+    
+    // Apply filter from Enumeration, with intensity
+    func applyFilter( filterType filterName: filter, intensity: Int) ->UIImage{
         
         switch(filterName){
-        case "Hello":
-            break
-        
-        default: break
+        case .grayscale:
+            return filter1(intensity)
+        case .brightness:
+            return filter2(intensity)
+        case .contrast:
+            return filter3(intensity)
+        case .sepia:
+            return filter4(intensity)
+        case .transparency:
+            return filter5(intensity)
         }
-        
-        return myRGBA.toUIImage()!
     }
-    func filter1() -> UIImage{
-        let myRGBA = RGBAImage(image: self.image)!
-        let avgRed = 122
-        let avgGreen = 133
-        let avgBlue = 51
-        
-        for y in 0..<myRGBA.height{
-            for x in 0..<myRGBA.width{
-                let index = y * myRGBA.width + x
-                var pixel = myRGBA.pixels[index]
-                pixel.alpha = pixel.alpha / 2
-                
-                myRGBA.pixels[index] = pixel
-            }
-        }
-        
-        return myRGBA.toUIImage()!
-    }
+    
+    /*---------------------------------------------------*/
+    // Methods: Filters
+    /*---------------------------------------------------*/
     
     //Grayscale
-    func filter2() -> UIImage{
+    func filter1(intensity: Int = 50) -> UIImage{
         let myRGBA = RGBAImage(image: self.image)!
         
         for y in 0..<myRGBA.height{
             for x in 0..<myRGBA.width{
                 let index = y * myRGBA.width + x
                 var pixel = myRGBA.pixels[index]
+                let red: Double = Double(pixel.red)
+                let green: Double = Double(pixel.green)
+                let blue: Double = Double(pixel.blue)
                 
-                var red: Double = Double(pixel.red)
-                var blue: Double = Double(pixel.blue)
-                var green: Double = Double(pixel.green)
-                var alpha: Double = Double(pixel.alpha)
+                //Apply filter
+                let newRed : Double = 0.2989 * red + 0.5870 * green + 0.1140 * blue
+                let newGreen : Double = 0.2989 * red + 0.5870 * green + 0.1140 * blue
+                let newBlue : Double = 0.2989 * red + 0.5870 * green + 0.1140 * blue
                 
-                pixel.green = UInt8(0.2989 * red + 0.5870 * green + 0.1140 * blue)
-                pixel.blue = UInt8(0.2989 * red + 0.5870 * green + 0.1140 * blue)
-                pixel.red = UInt8(0.2989 * red + 0.5870 * green + 0.1140 * blue)
-                
-                /*
-                pixel.green = UInt8(max(0, min(255, green / 2)))
-                pixel.blue = UInt8(max(0, min(255, blue / 2 )))
-                pixel.red = UInt8(max(0, min(255, red / 2)))
-                //pixel.alpha = pixel.alph
-                */
+                //Apply intensity
+                pixel.red = UInt8(max(0,min(255,(newRed * Double(intensity+50) / 100))))
+                pixel.green = UInt8(max(0,min(255,(newGreen * Double(intensity+50) / 100))))
+                pixel.blue = UInt8(max(0,min(255,(newBlue * Double(intensity+50) / 100))))
                 
                 myRGBA.pixels[index] = pixel
             }
         }
         
-        return myRGBA.toUIImage()!
-    }
-
-    // Brighten
-    func filter3() -> UIImage{
-        let myRGBA = RGBAImage(image: self.image)!
-        
-        for y in 0..<myRGBA.height{
-            for x in 0..<myRGBA.width{
-                let index = y * myRGBA.width + x
-                var pixel = myRGBA.pixels[index]
-                
-                var red: Double = Double(pixel.red)
-                var blue: Double = Double(pixel.blue)
-                var green: Double = Double(pixel.green)
-                var alpha: Double = Double(pixel.alpha)
-                
-
-                pixel.green = UInt8(max(0, min(255, green + 50)))
-                pixel.blue = UInt8(max(0, min(255, blue + 50 )))
-                pixel.red = UInt8(max(0, min(255, red + 50)))
-                //pixel.alpha = pixel.alph
- 
-                
-                myRGBA.pixels[index] = pixel
-            }
-        }
-        
-        return myRGBA.toUIImage()!
+        self.image = myRGBA.toUIImage()!
+        return self.image
     }
     
-    // Red
-    func filter4() -> UIImage{
+    //Brightness
+    func filter2(intensity: Int = 100) -> UIImage{
         let myRGBA = RGBAImage(image: self.image)!
         
         for y in 0..<myRGBA.height{
             for x in 0..<myRGBA.width{
                 let index = y * myRGBA.width + x
                 var pixel = myRGBA.pixels[index]
+                let red: Double = Double(pixel.red)
+                let green: Double = Double(pixel.green)
+                let blue: Double = Double(pixel.blue)
                 
-                var red: Double = Double(pixel.red)
-                var blue: Double = Double(pixel.blue)
-                var green: Double = Double(pixel.green)
-                var alpha: Double = Double(pixel.alpha)
-                
-                
-                pixel.green = UInt8(max(0, min(255, green - 50)))
-                pixel.blue = UInt8(max(0, min(255, blue + 50 )))
-                pixel.red = UInt8(max(0, min(255, red + 50)))
-                //pixel.alpha = pixel.alph
-                
-                
+                //Apply filter and intensity
+                pixel.red = UInt8(max(0, min(255, (red * ( Double(intensity+50)) / 100))))
+                pixel.green = UInt8(max(0, min(255, (green * (Double(intensity+50)) / 100))))
+                pixel.blue = UInt8(max(0, min(255, (blue * (Double(intensity+50)) / 100))))
+
                 myRGBA.pixels[index] = pixel
             }
         }
         
-        return myRGBA.toUIImage()!
+        self.image = myRGBA.toUIImage()!
+        return self.image
     }
     
-    // Red
-    func filter5() -> UIImage{
+    //Contrast
+    func filter3(intensity: Int = 100) -> UIImage{
+        let myRGBA = RGBAImage(image: self.image)!
+        let contrast: Double = ( Double(intensity) / 100 ) * 510 - 255
+        let factor: Double = ( 259 * ( contrast + 255 ) ) / ( 255 * ( 259 - contrast ) )
+        
+        for y in 0..<myRGBA.height{
+            for x in 0..<myRGBA.width{
+                let index = y * myRGBA.width + x
+                var pixel = myRGBA.pixels[index]
+                let red: Double = Double(pixel.red)
+                let green: Double = Double(pixel.green)
+                let blue: Double = Double(pixel.blue)
+                
+                //Apply filter and intensity
+                pixel.red = UInt8(max(0, min(255, (factor * (red - 128)) + 128 )))
+                pixel.green = UInt8(max(0, min(255, (factor * (green - 128)) + 128 )))
+                pixel.blue = UInt8(max(0, min(255, (factor * (blue - 128)) + 128 )))
+                
+                myRGBA.pixels[index] = pixel
+            }
+        }
+        
+        self.image = myRGBA.toUIImage()!
+        return self.image
+    }
+    
+    //Sepia
+    func filter4(intensity: Int = 50) -> UIImage{
+        let myRGBA = RGBAImage(image: self.image)!
+        
+        for y in 0..<myRGBA.height{
+            for x in 0..<myRGBA.width{
+                let index = y * myRGBA.width + x
+                var pixel = myRGBA.pixels[index]
+                let red: Double = Double(pixel.red)
+                let green: Double = Double(pixel.green)
+                let blue: Double = Double(pixel.blue)
+                
+                //Apply filter
+                let newRed : Double = 0.393 * red + 0.769 * green + 0.189 * blue
+                let newGreen : Double = 0.349 * red + 0.686 * green + 0.168 * blue
+                let newBlue : Double = 0.272 * red + 0.534 * green + 0.131 * blue
+                
+                //Apply intensity
+                pixel.red = UInt8(max(0,min(255,(newRed * Double(intensity+50) / 100))))
+                pixel.green = UInt8(max(0,min(255,(newGreen * Double(intensity+50) / 100))))
+                pixel.blue = UInt8(max(0,min(255,(newBlue * Double(intensity+50) / 100))))
+                
+                myRGBA.pixels[index] = pixel
+            }
+        }
+        
+        self.image = myRGBA.toUIImage()!
+        return self.image
+    }
+    
+    //Transparency
+    func filter5(intensity: Int = 75) -> UIImage{
         let myRGBA = RGBAImage(image: self.image)!
         
         for y in 0..<myRGBA.height{
@@ -146,36 +241,46 @@ class ImageProcessor {
                 let index = y * myRGBA.width + x
                 var pixel = myRGBA.pixels[index]
                 
-                var red: Double = Double(pixel.red)
-                var blue: Double = Double(pixel.blue)
-                var green: Double = Double(pixel.green)
-                var alpha: Double = Double(pixel.alpha)
-                
-                
-                pixel.green = UInt8(max(0, min(255, green )))
-                pixel.blue = UInt8(max(0, min(255, blue + green - red )))
-                pixel.red = UInt8(max(0, min(255, red - green)))
-                //pixel.alpha = pixel.alph
-                
+                pixel.alpha = UInt8(max(0,min(255,(255 * Double(100-intensity) / 100))))
                 
                 myRGBA.pixels[index] = pixel
             }
         }
         
-        return myRGBA.toUIImage()!
+        self.image = myRGBA.toUIImage()!
+        return self.image
     }
 }
 
 
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+//  Parameters for each filter formula that can change the intensity of the effect of the filter
+//      ->intensity 0-100
+/*----------------------------------------------------------------------------------------------------------------------------------*/
 let imageProc = ImageProcessor(image: image!)
+imageProc.applyFilter(filterType: filter.brightness, intensity: 100)
 
-var processedImage = imageProc.applyFilter(imageProc.filter2)
 
-processedImage = imageProc.applyFilter(imageProc.filter3)
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+// Interface to specify the order and parameters for an arbitrary number of filter calculations that should be applied to an image
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+// Apply 2 filters
+let imageProcMultipleFilters = ImageProcessor(image: image!)
+imageProcMultipleFilters.applyFilters(filterTypes: (type: "Grayscale", intensity: 80),(type: "Contrast", intensity: 80))
 
-processedImage = imageProc.applyFilter(imageProc.filter4)
+// Apply 3 filters
+let imageProcMultipleFilters2 = ImageProcessor(image: image!)
+imageProcMultipleFilters2.applyFilters(filterTypes: (type: filter.sepia, intensity: 100),(type: filter.brightness, intensity: 70),(type: filter.transparency, intensity: 50))
 
-processedImage = imageProc.applyFilter(imageProc.filter5)
+
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+// Interface to apply specific default filter formulas/parameters to an image, by specifying each configuration’s name as a String
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+let imageProcDefaultFilter = ImageProcessor(image: image!)
+imageProcDefaultFilter.applyFilter(filterType: "SEPIA")
+
+let imageProcDefaultFilter2 = ImageProcessor(image: image!)
+imageProcDefaultFilter2.applyFilter(filterType: filter.contrast)
 
 
 /*
@@ -212,6 +317,5 @@ STEP 5: Apply predefined filters
 SUBMISSION: Zip your .playground file and upload it to your submission. Your peer reviewers will download your zipped file and test in their playground.
 
 TIP: Playgrounds are a safe space, they can only access the files within the playground (you cannot access files outside of the playground).
-
 
 */
